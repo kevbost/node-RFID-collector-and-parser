@@ -1,4 +1,6 @@
 node_modules
-csv
-raw
-json
+csv/*.csv
+csv/*.xlsx
+json/*.json
+raw/*.txt
+!sample-5000-lines.txt

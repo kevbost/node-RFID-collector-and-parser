@@ -1,5 +1,5 @@
 /*
-*   This code example was built with the mindset of fun
+*   This code example was built with the mindset of experimentation
 *   rather than perfection.
 *
 *   It listens for serial input from an RFID scanner

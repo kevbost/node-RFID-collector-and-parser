@@ -35,7 +35,8 @@ var serialport          = require("serialport"),
 *   Change these options to match your needs based on
 *   https://github.com/voodootikigod/node-serialport
 */
-var usbDriver           = "/dev/cu.usbserial-AH000I24",
+var usbDriver           = "/dev/cu.usbserial-AH000I24",  // OSX
+// var usbDriver           = "COM3",                           // Windows
     client              = new net.Socket(),
     sp                  = new SerialPort(usbDriver, {
                             parser: serialport.parsers.readline("\n"),
@@ -57,9 +58,9 @@ var networkIp           = '192.168.1.79';
 */
 var counter             = 0,
     obj                 = {records: []},
-    filenameTXT         = './raw/' + moment().format('YYYY-MMM-DD.hh:mm:ss-a') + '.txt',
-    filenameJSON        = './json/' + moment().format() + '.json',
-    filenameCSV         = './csv/' + moment().format() + '.csv',
+    filenameTXT         = './raw/' + moment().format('YYYYMMMDDhhmmss') + '.txt',
+    filenameJSON        = './json/' + moment().format('YYYYMMMDDhhmmss') + '.json',
+    filenameCSV         = './csv/' + moment().format('YYYYMMMDDhhmmss') + '.csv',
     filenameRead;
 
 
@@ -167,7 +168,7 @@ var _PARSER = {
         *   Reads ./raw directory and acts on user input
         */
         files = fs.readdirSync('./raw').reverse();
-        files.splice(files.indexOf('.DS_STORE'), 1);
+        // files.splice(files.indexOf('.DS_STORE'), 1);
         if (files.length < 1) { _Force_Exit('no_files'); }
         files.push('Exit');
         inquirer.prompt([

@@ -35,8 +35,8 @@ var serialport          = require("serialport"),
 *   Change these options to match your needs based on
 *   https://github.com/voodootikigod/node-serialport
 */
-var usbDriver           = "/dev/cu.usbserial-AH000I24",  // OSX
-// var usbDriver           = "COM3",                           // Windows
+// var usbDriver           = "/dev/cu.usbserial-AH000I24",  // OSX
+var usbDriver           = "COM3",                           // Windows
     client              = new net.Socket(),
     sp                  = new SerialPort(usbDriver, {
                             parser: serialport.parsers.readline("\n"),

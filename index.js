@@ -29,19 +29,27 @@ var serialport          = require("serialport"),
     readline            = require('readline'),
     SerialPort          = serialport.SerialPort;
 
+/*
+*   Mutable variable, set to true if 'Log Only' option is chosen
+*   Will not write to file if set to true.
+*/
+var logOnly             = false;
 
 /*
 *   USB Serial Definitions
 *   Change these options to match your needs based on
 *   https://github.com/voodootikigod/node-serialport
 */
+var usbDriver,
+    usbWindowsDriver    = "COM3",
+    usbOSXDriver        = "/dev/cu.usbserial-AH000I24",
 // var usbDriver           = "/dev/cu.usbserial-AH000I24",  // OSX
-var usbDriver           = "COM3",                           // Windows
-    client              = new net.Socket(),
-    sp                  = new SerialPort(usbDriver, {
-                            parser: serialport.parsers.readline("\n"),
-                            baudrate: 9600
-                        }, false);
+// var usbDriver           = "COM3",                           // Windows
+    client              = new net.Socket()
+    // sp                  = new SerialPort(usbDriver, {
+    //                         parser: serialport.parsers.readline("\n"),
+    //                         baudrate: 9600
+    //                     }, false);
 
 
 /*
@@ -78,13 +86,24 @@ var counter             = 0,
 */
 var _LISTENER = {
     _initSerial: function(){
+        console.log(usbDriver);
         /*
         *   Serial Communication
         */
+        var sp = new SerialPort(usbDriver, {
+            parser: serialport.parsers.readline("\n"),
+            baudrate: 9600
+        }, false);
         sp.open(function (error) {
             if ( error ) {
                 console.log(chalk.red('\nUSB failed to open: ' + error));
                 return _LISTENER._initNetwork();
+            } else if (logOnly == true) {
+                console.log('\n' + chalk.green('Connected over USB at ' + chalk.yellow(usbDriver)));
+                console.log(chalk.cyan.bold('Not saving to file, only reporting log data') + '\n');
+                sp.on('data', function(data) {
+                    _LISTENER._dispatcher(data);
+                });
             } else {
                 console.log('\n' + chalk.green('Connected over USB at ' + chalk.yellow(usbDriver)));
                 console.log(chalk.cyan.bold('Writing to filename: ') + chalk.magenta(filenameTXT) + '\n');
@@ -104,7 +123,12 @@ var _LISTENER = {
             console.log(chalk.yellow('No network connection on ' + networkIp));
         });
         client.on('connect', function(error){
-            console.log(chalk.green('Great Success!') + '\n' + chalk.cyan.bold('Connected, writing to filename: ') + chalk.magenta(filenameTXT) + '\n');
+            if (logOnly == true) {
+                console.log('\n' + chalk.green('Connected over USB at ' + chalk.yellow(usbDriver)));
+                console.log(chalk.cyan.bold('Not saving to file, only reporting log data') + '\n');
+            } else {
+                console.log(chalk.green('Great Success!') + '\n' + chalk.cyan.bold('Connected, writing to filename: ') + chalk.magenta(filenameTXT) + '\n');
+            }
         });
         client.on('data', function(data){
             return _LISTENER._dispatcher(data);
@@ -149,7 +173,10 @@ var _LISTENER = {
         var time = moment().format("HH:mm:ss.SSS");
         var inputPlusTime = moment().format("HH:mm:ss.SSS") + "," + input + '\n';
         console.log(chalk.yellow(counter) + ': ' + time + ', ' + input);
-        fs.appendFile(filenameTXT, inputPlusTime);
+
+        if (logOnly == false) {
+            fs.appendFile(filenameTXT, inputPlusTime);
+        }
     }
 };
 
@@ -281,21 +308,42 @@ var _Force_Exit = function(opt){
 inquirer.prompt([
     {
         type: 'list',
+        name: 'os',
+        message: 'What OS are you on?',
+        choices: [
+            'OSX',
+            'Windows'
+        ]
+    },
+    {
+        type: 'list',
         name: 'what_to_do',
         message: 'What do you want to do?',
         choices: [
             'Listen',
             'Convert',
+            'Log Only',
             'Exit'
         ]
     }
 ], function(answers){
-    var a = answers.what_to_do;
-    if (a === 'Listen') {
+
+    var a = answers.os;
+    if (a === 'OSX') {
+        usbDriver = usbOSXDriver;
+    } else if (a === 'Windows') {
+        usbDriver = usbWindowsDriver;
+    }
+
+    var b = answers.what_to_do;
+    if (b === 'Listen') {
         _LISTENER._initSerial();
-    } else if (a === 'Convert') {
+    } else if (b === 'Convert') {
         _PARSER._initParser();
-    } else if (a === 'Exit') {
+    } else if (b === 'Log Only') {
+        logOnly = true;
+        _LISTENER._initSerial();
+    } else if (b === 'Exit') {
         _Force_Exit('user_exit');
     }
 });

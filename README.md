@@ -10,3 +10,5 @@ When you run `node index.js`, you will get a prompt asking what you want to do. 
 
 "Listen" opens the connection to the RFID scanner, then appends new data to "current-date-time.txt".
 "Convert" presents a list of available raw.txt files.  It will convert the raw.txt file into both .json and .csv files.
+
+fin
